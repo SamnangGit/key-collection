@@ -334,15 +334,16 @@ let joystickState = {
     moveInterval: null,
     currentX: 0,
     currentY: 0,
-    deadZone: 0.1,
+    deadZone: 0.15,
     // Smooth movement properties
     smoothX: 0,
     smoothY: 0,
-    smoothFactor: 0.15,
+    smoothFactor: 0.08,
     // Momentum for natural feel
     velocityX: 0,
     velocityY: 0,
-    friction: 0.9
+    friction: 0.85,
+    maxVelocity: 0.4
 };
 
 const joystickHandle = document.getElementById('joystickHandle');
@@ -398,12 +399,22 @@ function handleJoystickMove(clientX, clientY) {
     joystickState.currentX = (handleX - joystickState.centerX) / joystickState.maxDistance;
     joystickState.currentY = (handleY - joystickState.centerY) / joystickState.maxDistance;
 
-    // Apply dead zone
+    // Apply dead zone with progressive curve
     const magnitude = Math.sqrt(joystickState.currentX * joystickState.currentX + joystickState.currentY * joystickState.currentY);
 
     if (magnitude < joystickState.deadZone) {
         joystickState.currentX = 0;
         joystickState.currentY = 0;
+    } else {
+        // Apply progressive curve like Mobile Legends
+        const adjustedMagnitude = (magnitude - joystickState.deadZone) / (1 - joystickState.deadZone);
+        const progressiveMagnitude = Math.pow(adjustedMagnitude, 1.8); // Slower at start, faster at edges
+
+        const normalizedX = joystickState.currentX / magnitude;
+        const normalizedY = joystickState.currentY / magnitude;
+
+        joystickState.currentX = normalizedX * progressiveMagnitude;
+        joystickState.currentY = normalizedY * progressiveMagnitude;
     }
 }
 
@@ -417,26 +428,25 @@ function startContinuousMovement() {
 
         // Update velocity based on smooth input
         if (joystickState.isDragging && (Math.abs(joystickState.currentX) > 0.01 || Math.abs(joystickState.currentY) > 0.01)) {
-            // Accelerate toward joystick input
-            joystickState.velocityX += joystickState.smoothX * 0.05;
-            joystickState.velocityY += joystickState.smoothY * 0.05;
+            // Gentle acceleration toward joystick input
+            joystickState.velocityX += joystickState.smoothX * 0.02;
+            joystickState.velocityY += joystickState.smoothY * 0.02;
         } else {
             // Apply friction when not actively controlling
             joystickState.velocityX *= joystickState.friction;
             joystickState.velocityY *= joystickState.friction;
         }
 
-        // Cap maximum velocity
-        const maxVel = 1.0;
+        // Cap maximum velocity with joystick-like curve
         const velMagnitude = Math.sqrt(joystickState.velocityX * joystickState.velocityX + joystickState.velocityY * joystickState.velocityY);
-        if (velMagnitude > maxVel) {
-            joystickState.velocityX = (joystickState.velocityX / velMagnitude) * maxVel;
-            joystickState.velocityY = (joystickState.velocityY / velMagnitude) * maxVel;
+        if (velMagnitude > joystickState.maxVelocity) {
+            joystickState.velocityX = (joystickState.velocityX / velMagnitude) * joystickState.maxVelocity;
+            joystickState.velocityY = (joystickState.velocityY / velMagnitude) * joystickState.maxVelocity;
         }
 
         // Move player if velocity is significant
         if (Math.abs(joystickState.velocityX) > 0.001 || Math.abs(joystickState.velocityY) > 0.001) {
-            const baseDistance = Math.min(gameState.gameWidth, gameState.gameHeight) * 0.012;
+            const baseDistance = Math.min(gameState.gameWidth, gameState.gameHeight) * 0.006;
 
             const moveX = joystickState.velocityX * baseDistance;
             const moveY = joystickState.velocityY * baseDistance;
