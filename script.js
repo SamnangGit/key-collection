@@ -343,7 +343,7 @@ let joystickState = {
     velocityX: 0,
     velocityY: 0,
     friction: 0.85,
-    maxVelocity: 0.4
+    maxVelocity: 0.65
 };
 
 const joystickHandle = document.getElementById('joystickHandle');
@@ -429,8 +429,8 @@ function startContinuousMovement() {
         // Update velocity based on smooth input
         if (joystickState.isDragging && (Math.abs(joystickState.currentX) > 0.01 || Math.abs(joystickState.currentY) > 0.01)) {
             // Gentle acceleration toward joystick input
-            joystickState.velocityX += joystickState.smoothX * 0.02;
-            joystickState.velocityY += joystickState.smoothY * 0.02;
+            joystickState.velocityX += joystickState.smoothX * 0.03;
+            joystickState.velocityY += joystickState.smoothY * 0.03;
         } else {
             // Apply friction when not actively controlling
             joystickState.velocityX *= joystickState.friction;
@@ -446,7 +446,7 @@ function startContinuousMovement() {
 
         // Move player if velocity is significant
         if (Math.abs(joystickState.velocityX) > 0.001 || Math.abs(joystickState.velocityY) > 0.001) {
-            const baseDistance = Math.min(gameState.gameWidth, gameState.gameHeight) * 0.006;
+            const baseDistance = Math.min(gameState.gameWidth, gameState.gameHeight) * 0.009;
 
             const moveX = joystickState.velocityX * baseDistance;
             const moveY = joystickState.velocityY * baseDistance;
