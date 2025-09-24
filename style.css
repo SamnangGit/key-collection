@@ -1,0 +1,410 @@
+body {
+    background-color: white;
+    color: black;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+}
+
+.game-canvas {
+    border: 2px solid black;
+    position: relative;
+}
+
+.player {
+    width: 20px;
+    height: 20px;
+    background-color: black;
+    position: absolute;
+    transition: all 0.1s ease;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+.obstacle {
+    background-color: black;
+    position: absolute;
+}
+
+.key-container {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    z-index: 5;
+    /* Allow characters to display fully */
+    overflow: visible;
+}
+
+.cute-character {
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: bounce 2s infinite ease-in-out;
+    transition: all 0.3s ease;
+    z-index: 10;
+    color: black;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    line-height: 1;
+    overflow: visible;
+}
+
+.cute-character:hover {
+    transform: scale(1.1);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cute-character:active {
+    transform: scale(0.95);
+}
+
+.game-icon {
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.key {
+    background-color: white;
+    color: black;
+    position: absolute;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid black;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    z-index: 5;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px black;
+    top: 5px;
+    left: 5px;
+    transition: all 0.5s ease;
+}
+
+.key.hidden {
+    opacity: 0;
+    transform: scale(0);
+}
+
+.key.revealed {
+    opacity: 1 !important;
+    background-color: white !important;
+    color: black !important;
+    transform: scale(1);
+    animation: keyGlow 2s infinite ease-in-out;
+}
+
+@keyframes keyGlow {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 2px white, 0 0 0 4px black;
+        background-color: white;
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 4px white, 0 0 0 6px black;
+        background-color: white;
+        opacity: 1;
+    }
+}
+
+.key.collected {
+    background-color: #f0f0f0;
+    color: #666;
+    animation: none;
+    transform: scale(0.8);
+    opacity: 0.5;
+}
+
+.key-container.collected .cute-character {
+    opacity: 0.3;
+    animation: none;
+}
+
+#startPage {
+    background: linear-gradient(45deg, white 25%, transparent 25%),
+                linear-gradient(-45deg, white 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, white 75%),
+                linear-gradient(-45deg, transparent 75%, white 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+#gamePage {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    width: 100vw;
+}
+
+#gameArea {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.win-animation {
+    animation: celebrate 1s ease-in-out;
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(-5deg); }
+    75% { transform: scale(1.1) rotate(5deg); }
+}
+
+.joystick-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+}
+
+.joystick-container {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.joystick-base {
+    width: 100px;
+    height: 100px;
+    border: 3px solid black;
+    border-radius: 50%;
+    background: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.joystick-handle {
+    width: 40px;
+    height: 40px;
+    background: black;
+    border-radius: 50%;
+    position: absolute;
+    cursor: grab;
+    transition: all 0.05s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    touch-action: none;
+    user-select: none;
+}
+
+.joystick-handle:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.joystick-handle.dragging {
+    transition: none;
+    cursor: grabbing;
+    transform: scale(0.95);
+    will-change: transform, left, top;
+}
+
+@media (max-width: 768px) {
+    /* Fix viewport height issues - account for browser UI */
+    body {
+        height: 100vh;
+        height: 100svh; /* Small viewport height - excludes browser UI */
+        max-height: 100vh;
+        max-height: 100svh;
+    }
+
+    #startPage, #gamePage {
+        height: 100vh;
+        height: 100svh; /* Small viewport height - excludes browser UI */
+        max-height: 100vh;
+        max-height: 100svh;
+        overflow: hidden;
+    }
+
+    .player {
+        width: 18px;
+        height: 18px;
+    }
+
+    .key-container {
+        width: 40px;
+        height: 40px;
+    }
+
+    .cute-character {
+        font-size: 20px;
+        width: 40px;
+        height: 40px;
+        line-height: 1;
+    }
+
+    .key {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        top: 4px;
+        left: 4px;
+    }
+
+    .joystick-controls {
+        display: flex;
+        bottom: 15px;
+        left: 15px;
+    }
+
+    .joystick-container {
+        width: 130px;
+        height: 130px;
+    }
+
+    .joystick-base {
+        width: 110px;
+        height: 110px;
+    }
+
+    .joystick-handle {
+        width: 45px;
+        height: 45px;
+    }
+
+    /* Start screen mobile optimization */
+    .game-icon {
+        font-size: 3rem !important;
+    }
+
+    h1 {
+        font-size: 2rem !important;
+    }
+
+    .text-lg {
+        font-size: 1rem !important;
+    }
+
+    .px-8 {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+    }
+
+    .py-4 {
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+    }
+
+    .text-xl {
+        font-size: 1.125rem !important;
+    }
+
+    /* Mobile spacing */
+    #startPage {
+        padding: 1.5rem 1rem !important;
+    }
+
+    #startPage .text-center {
+        margin-bottom: 1.75rem !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+
+    .mb-8 {
+        margin-bottom: 1.25rem !important;
+    }
+
+    /* Game area mobile optimization */
+    #gamePage {
+        /* Use small viewport height to account for browser UI */
+        height: 100svh !important;
+        max-height: 100svh !important;
+    }
+
+    #gamePage .flex.justify-between.items-center {
+        padding: 0.75rem 0.5rem !important;
+        min-height: 50px;
+        flex-shrink: 0;
+        align-items: center;
+        display: flex;
+    }
+
+    .text-2xl {
+        font-size: 1.125rem !important;
+    }
+
+    .flex.gap-4 {
+        gap: 0.5rem !important;
+    }
+
+
+    .text-xs {
+        font-size: 0.75rem !important;
+    }
+
+    /* Hide bottom instruction text on mobile */
+    .p-2.bg-white.border-t-2.border-black {
+        display: none !important;
+    }
+
+    /* Ensure game area takes remaining space properly */
+    #gameArea {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        /* Account for header - use smaller calculation for mobile */
+        height: calc(100% - 60px);
+        position: relative;
+    }
+
+    /* Ensure all game elements stay within bounds but allow character overflow */
+    .key-container {
+        width: 40px !important;
+        height: 40px !important;
+        overflow: visible !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .joystick-controls {
+        display: none;
+    }
+}
+
+.swipe-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
