@@ -331,14 +331,14 @@ let joystickState = {
     centerX: 0,
     centerY: 0,
     maxDistance: window.innerWidth <= 768 ? 45 : 35,
-    moveInterval: null,
+    animationFrameId: null,
     currentX: 0,
     currentY: 0,
     deadZone: 0.15,
     // Smooth movement properties
     smoothX: 0,
     smoothY: 0,
-    smoothFactor: 0.08,
+    smoothFactor: 0.12,
     // Momentum for natural feel
     velocityX: 0,
     velocityY: 0,
@@ -419,57 +419,47 @@ function handleJoystickMove(clientX, clientY) {
 }
 
 function startContinuousMovement() {
-    if (joystickState.moveInterval) return;
+    if (joystickState.animationFrameId) return;
 
-    joystickState.moveInterval = setInterval(() => {
+    function smoothMovementLoop() {
         // Smooth interpolation toward joystick input
         joystickState.smoothX += (joystickState.currentX - joystickState.smoothX) * joystickState.smoothFactor;
         joystickState.smoothY += (joystickState.currentY - joystickState.smoothY) * joystickState.smoothFactor;
 
         // Update velocity based on smooth input
-        if (joystickState.isDragging && (Math.abs(joystickState.currentX) > 0.01 || Math.abs(joystickState.currentY) > 0.01)) {
-            // Gentle acceleration toward joystick input
-            joystickState.velocityX += joystickState.smoothX * 0.03;
-            joystickState.velocityY += joystickState.smoothY * 0.03;
-        } else {
-            // Apply friction when not actively controlling
-            joystickState.velocityX *= joystickState.friction;
-            joystickState.velocityY *= joystickState.friction;
+        if (joystickState.isDragging && (Math.abs(joystickState.smoothX) > 0.01 || Math.abs(joystickState.smoothY) > 0.01)) {
+            // Direct proportional movement for smoother feel
+            const inputMagnitude = Math.sqrt(joystickState.smoothX * joystickState.smoothX + joystickState.smoothY * joystickState.smoothY);
+
+            if (inputMagnitude > 0.01) {
+                const baseDistance = Math.min(gameState.gameWidth, gameState.gameHeight) * 0.008;
+
+                const moveX = joystickState.smoothX * baseDistance;
+                const moveY = joystickState.smoothY * baseDistance;
+
+                movePlayer(moveX, moveY);
+            }
         }
 
-        // Cap maximum velocity with joystick-like curve
-        const velMagnitude = Math.sqrt(joystickState.velocityX * joystickState.velocityX + joystickState.velocityY * joystickState.velocityY);
-        if (velMagnitude > joystickState.maxVelocity) {
-            joystickState.velocityX = (joystickState.velocityX / velMagnitude) * joystickState.maxVelocity;
-            joystickState.velocityY = (joystickState.velocityY / velMagnitude) * joystickState.maxVelocity;
-        }
+        // Continue animation loop
+        joystickState.animationFrameId = requestAnimationFrame(smoothMovementLoop);
+    }
 
-        // Move player if velocity is significant
-        if (Math.abs(joystickState.velocityX) > 0.001 || Math.abs(joystickState.velocityY) > 0.001) {
-            const baseDistance = Math.min(gameState.gameWidth, gameState.gameHeight) * 0.009;
-
-            const moveX = joystickState.velocityX * baseDistance;
-            const moveY = joystickState.velocityY * baseDistance;
-
-            movePlayer(moveX, moveY);
-        }
-
-        // Stop very small movements
-        if (Math.abs(joystickState.velocityX) < 0.001) joystickState.velocityX = 0;
-        if (Math.abs(joystickState.velocityY) < 0.001) joystickState.velocityY = 0;
-
-    }, 16); // 60fps
+    joystickState.animationFrameId = requestAnimationFrame(smoothMovementLoop);
 }
 
 function stopContinuousMovement() {
     joystickState.isDragging = false;
-    // Movement will naturally decay through friction
+    if (joystickState.animationFrameId) {
+        cancelAnimationFrame(joystickState.animationFrameId);
+        joystickState.animationFrameId = null;
+    }
 }
 
 function forceStopMovement() {
-    if (joystickState.moveInterval) {
-        clearInterval(joystickState.moveInterval);
-        joystickState.moveInterval = null;
+    if (joystickState.animationFrameId) {
+        cancelAnimationFrame(joystickState.animationFrameId);
+        joystickState.animationFrameId = null;
     }
     joystickState.currentX = 0;
     joystickState.currentY = 0;
