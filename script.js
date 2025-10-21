@@ -5,7 +5,8 @@ let gameState = {
     gameWidth: 0,
     gameHeight: 0,
     touchStartX: 0,
-    touchStartY: 0
+    touchStartY: 0,
+    keyLetters: ['I', 'L', 'U'] // Will be randomized on game start/restart
 };
 
 const player = document.getElementById('player');
@@ -19,6 +20,17 @@ const gameArea = document.getElementById('gameArea');
 
 let obstacles = [];
 let keys = [];
+
+function generateRandomLetters() {
+    // Generate 3 random uppercase letters
+    const letters = [];
+    for (let i = 0; i < 3; i++) {
+        // Generate random letter from A-Z (ASCII 65-90)
+        const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        letters.push(randomLetter);
+    }
+    return letters;
+}
 
 function initializeGame() {
     updateGameDimensions();
@@ -60,9 +72,9 @@ function setupKeys() {
     const existingKeys = keys.length > 0 ? [...keys] : [];
 
     keys = [
-        {id: 'keyI', x: gameState.gameWidth * 0.22, y: gameState.gameHeight * 0.2, letter: 'I', revealed: false},
-        {id: 'keyL', x: gameState.gameWidth * 0.62, y: gameState.gameHeight * 0.65, letter: 'L', revealed: false},
-        {id: 'keyU', x: gameState.gameWidth * 0.85, y: gameState.gameHeight * 0.9, letter: 'U', revealed: false}
+        {id: 'keyI', x: gameState.gameWidth * 0.22, y: gameState.gameHeight * 0.2, letter: gameState.keyLetters[0], revealed: false},
+        {id: 'keyL', x: gameState.gameWidth * 0.62, y: gameState.gameHeight * 0.65, letter: gameState.keyLetters[1], revealed: false},
+        {id: 'keyU', x: gameState.gameWidth * 0.85, y: gameState.gameHeight * 0.9, letter: gameState.keyLetters[2], revealed: false}
     ];
 
     // Preserve revealed state from existing keys
@@ -82,6 +94,9 @@ function setupKeys() {
 
         const keyElement = keyContainer.querySelector('.key');
         const characterElement = keyContainer.querySelector('.cute-character');
+
+        // Update the key letter text
+        keyElement.textContent = key.letter;
 
         // Remove click handlers since keys auto-reveal
         characterElement.onclick = null;
@@ -111,6 +126,9 @@ function resetGame() {
     gameState.playerY = 50;
     gameState.keysCollected = [];
 
+    // Randomize the key letters for a fresh experience
+    gameState.keyLetters = generateRandomLetters();
+
     // Stop any ongoing movement completely
     forceStopMovement();
 
@@ -118,7 +136,8 @@ function resetGame() {
     updatePlayerPosition();
     updateUI();
 
-    // Reset all keys
+    // Reset all keys with new random letters
+    setupKeys();
     keys.forEach(key => {
         const keyContainer = document.getElementById(key.id);
         const keyElement = keyContainer.querySelector('.key');
